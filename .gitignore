@@ -21,4 +21,12 @@ logs/
 
 #Environment variables
 .env
- 
+ # Downloaded data files (recreatable from sources.txt)
+data/
+
+# Local cache from running scripts
+.pytest_cache/
+.ipynb_checkpoints/
+
+# Mac/Linux temp
+*~

@@ -7,11 +7,15 @@ https://www.osha.gov/sites/default/files/publications/OSHA3514.pdf
 # CSB Investigation Report — BP Texas City Refinery Explosion
 https://www.csb.gov/assets/1/20/csbfinalreportbp.pdf
 
-# CSB Investigation Report — Tesoro Anacortes Refinery
-https://www.csb.gov/assets/1/20/tesoro_anacortes_2005_investigation_report.pdf
+# NIOSH Pocket Guide to Chemical Hazards
+https://www.cdc.gov/niosh/docs/2005-149/pdfs/2005-149.pdf
 
-# Safety Data Sheet — Benzene (Sigma-Aldrich)
-https://www.sigmaaldrich.com/GB/en/sds/sial/270709
+# OSHA Workers Rights (verified)
+https://www.osha.gov/sites/default/files/publications/OSHA3165.pdf
 
-# Safety Data Sheet — Methanol (Sigma-Aldrich)
-https://www.sigmaaldrich.com/GB/en/sds/sial/322415
+# Disabled — Tesoro CSB report URL returns 404 (link rotted)
+# https://www.csb.gov/assets/1/20/tesoro_anacortes_2005_investigation_report.pdf
+
+# Disabled — Sigma-Aldrich blocks automated downloads
+# https://www.sigmaaldrich.com/GB/en/sds/sial/270709
+# https://www.sigmaaldrich.com/GB/en/sds/sial/322415
