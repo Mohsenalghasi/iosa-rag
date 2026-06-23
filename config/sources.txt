@@ -1,0 +1,17 @@
+# OSHA Process Safety Management Standard
+https://www.osha.gov/sites/default/files/publications/osha3132.pdf
+
+# OSHA Hazard Communication Standard Guide
+https://www.osha.gov/sites/default/files/publications/OSHA3514.pdf
+
+# CSB Investigation Report — BP Texas City Refinery Explosion
+https://www.csb.gov/assets/1/20/csbfinalreportbp.pdf
+
+# CSB Investigation Report — Tesoro Anacortes Refinery
+https://www.csb.gov/assets/1/20/tesoro_anacortes_2005_investigation_report.pdf
+
+# Safety Data Sheet — Benzene (Sigma-Aldrich)
+https://www.sigmaaldrich.com/GB/en/sds/sial/270709
+
+# Safety Data Sheet — Methanol (Sigma-Aldrich)
+https://www.sigmaaldrich.com/GB/en/sds/sial/322415
