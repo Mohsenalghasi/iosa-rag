@@ -19,3 +19,4 @@ https://www.osha.gov/sites/default/files/publications/OSHA3165.pdf
 # Disabled — Sigma-Aldrich blocks automated downloads
 # https://www.sigmaaldrich.com/GB/en/sds/sial/270709
 # https://www.sigmaaldrich.com/GB/en/sds/sial/322415
+
