@@ -1,10 +1,14 @@
 import fitz
 import json
+import pytesseract
+from PIL import Image
 from pathlib import Path
 from datetime import datetime, timezone
 from iosa.logger import setup_logger
 
 log = setup_logger("iosa.ingestion.parser")
+
+OCR_WORD_THRESHOLD = 10
 
 
 def parse_pdf(pdf_path: Path, document_type: str = "unknown", access_level: str = "public") -> dict:
@@ -15,11 +19,23 @@ def parse_pdf(pdf_path: Path, document_type: str = "unknown", access_level: str 
 
     for page_num, page in enumerate(doc, start=1):
         text = page.get_text()
+        word_count = len(text.split())
+        ocr_used = False
+
+        if word_count < OCR_WORD_THRESHOLD:
+            log.info(f"Page {page_num} of {pdf_path.name} has {word_count} words, trying OCR")
+            pix = page.get_pixmap()
+            img = Image.frombytes("RGB", [pix.width, pix.height], pix.samples)
+            text = pytesseract.image_to_string(img)
+            word_count = len(text.split())
+            ocr_used = True
+
         pages.append({
             "page_number": page_num,
             "text": text,
             "char_count": len(text),
-            "word_count": len(text.split())
+            "word_count": word_count,
+            "ocr_used": ocr_used
         })
 
     doc.close()
@@ -55,7 +71,7 @@ if __name__ == "__main__":
         "2005-149.pdf": "NIOSH pocket guide"
     }
 
-    pdf_files = sorted(raw_dir.glob("*.pdf"))
+    pdf_files = sorted(raw_dir.rglob("*.pdf"))
 
     for pdf_file in pdf_files:
         doc_type = doc_types.get(pdf_file.name, "unknown")
@@ -70,3 +86,11 @@ if __name__ == "__main__":
         output_path = processed_dir / f"{pdf_file.stem}.json"
         with open(output_path, "w", encoding="utf-8") as f:
             json.dump(result, f, indent=2)
+
+        txt_path = processed_dir / f"{pdf_file.stem}.txt"
+        with open(txt_path, "w", encoding="utf-8") as f:
+            for page in result["pages"]:
+                ocr_flag = " [OCR]" if page["ocr_used"] else ""
+                f.write(f"--- Page {page['page_number']}{ocr_flag} ---\n")
+                f.write(page["text"])
+                f.write("\n\n")
