@@ -1,6 +1,7 @@
 import fitz
 import json
 import pytesseract
+import re
 from PIL import Image
 from pathlib import Path
 from datetime import datetime, timezone
@@ -10,6 +11,40 @@ log = setup_logger("iosa.ingestion.parser")
 
 OCR_WORD_THRESHOLD = 10
 
+GLUED_TEXT_THRESHOLD = 15  # avg chars per "word" above this signals missing spaces
+
+def _looks_glued(text: str) -> bool:
+    """Detect text where PyMuPDF failed to insert spaces between words."""
+    words = text.split()
+    if not words:
+        return False
+    avg_word_len = len(text) / len(words)
+    return avg_word_len > GLUED_TEXT_THRESHOLD
+
+
+def _extract_with_word_spacing(page) -> str:
+    """Re-extract text word by word, joining with explicit spaces.
+
+    Fallback for pages where get_text() glues words together due to
+    missing space characters in the PDF's internal text stream.
+    """
+    words = page.get_text("words")  # list of (x0, y0, x1, y1, word, block, line, word_no)
+    # sort by reading order: block, then line, then word position
+    words_sorted = sorted(words, key=lambda w: (w[5], w[6], w[7]))
+    return " ".join(w[4] for w in words_sorted)
+
+
+
+def _clean_text(text: str) -> str:
+    """Strip PDF typographic artifacts that break word-based analysis.
+
+    Collapses dot leaders (e.g. table-of-contents "....... 10") and
+    similar runs of repeated punctuation into a single space, so they
+    aren't mistaken for a single giant "word" downstream.
+    """
+    text = re.sub(r'[.\-_]{4,}', ' ', text)  # 4+ repeated dots/dashes/underscores
+    text = re.sub(r' {2,}', ' ', text)       # collapse resulting double spaces
+    return text
 
 def parse_pdf(pdf_path: Path, document_type: str = "unknown", access_level: str = "public") -> dict:
     """Extract text from a pdf file. Returns dict with text and metadata."""
@@ -19,6 +54,10 @@ def parse_pdf(pdf_path: Path, document_type: str = "unknown", access_level: str 
 
     for page_num, page in enumerate(doc, start=1):
         text = page.get_text()
+        if _looks_glued(text):
+            log.info(f"Page {page_num} of {pdf_path.name} looks glued, re-extracting with word spacing")
+            text = _extract_with_word_spacing(page)
+        text = _clean_text(text)    
         word_count = len(text.split())
         ocr_used = False
 
