@@ -24,3 +24,4 @@ websockets==15.0.1
 fastapi
 uvicorn
 boto3==1.43.72
+pytest==9.1.1
