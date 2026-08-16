@@ -1,41 +1,44 @@
-"""Call Ollama's chat endpoint to get an LLM text response.
+"""Call AWS Bedrock's chat endpoint to get an LLM text response.
 
 Shared by every reasoning node in the agent (router, grade, rewrite,
 generate), each passes its own prompt and system message. This module
-has no task-specific logic, it is purely a thin wrapper around the
-HTTP call, same pattern as embedder.py for embeddings.
+has no task-specific logic, same pattern as embedder.py.
 """
+import json
 import os
-import httpx
+
+import boto3
 from dotenv import load_dotenv
 
 load_dotenv()
 
-OLLAMA_HOST = os.getenv("OLLAMA_HOST", "http://localhost:11434")
-CHAT_MODEL = os.getenv("CHAT_MODEL", "qwen2.5:7b-instruct")
+AWS_REGION = os.getenv("AWS_REGION", "eu-west-2")
+BEDROCK_CHAT_MODEL = os.getenv("BEDROCK_CHAT_MODEL", "global.amazon.nova-2-lite-v1:0")
+
+_client = None
+
+
+def _get_client():
+    global _client
+    if _client is None:
+        _client = boto3.client("bedrock-runtime", region_name=AWS_REGION)
+    return _client
 
 
 def chat(prompt: str, system: str = "", temperature: float = 0.0) -> str:
-    """Send a prompt to the chat model, return its text reply.
+    """Send a prompt to the chat model, return its text reply."""
+    client = _get_client()
 
-    temperature=0.0 by default for deterministic, reproducible behavior,
-    important for grading and routing decisions where we want consistent
-    yes/no judgments rather than creative variation.
-    """
-    messages = []
+    body = {
+        "messages": [{"role": "user", "content": [{"text": prompt}]}],
+        "inferenceConfig": {"temperature": temperature, "maxTokens": 2048},
+    }
     if system:
-        messages.append({"role": "system", "content": system})
-    messages.append({"role": "user", "content": prompt})
+        body["system"] = [{"text": system}]
 
-    response = httpx.post(
-        f"{OLLAMA_HOST}/api/chat",
-        json={
-            "model": CHAT_MODEL,
-            "messages": messages,
-            "stream": False,
-            "options": {"temperature": temperature},
-        },
-        timeout=60.0,
+    response = client.invoke_model(
+        modelId=BEDROCK_CHAT_MODEL,
+        body=json.dumps(body),
     )
-    response.raise_for_status()
-    return response.json()["message"]["content"]
+    result = json.loads(response["body"].read())
+    return result["output"]["message"]["content"][0]["text"]

@@ -1,0 +1,13 @@
+venv/
+.venv/
+__pycache__/
+*.pyc
+.git/
+.env
+logs/
+data/raw/
+data/processed/
+aws/
+awscliv2.zip
+*.db-journal
+
